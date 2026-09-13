@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMART CCTV | Intelligent Surveillance &amp; Security Monitoring Dashboard</title>
+  <meta name="description" content="Production-ready SMART CCTV surveillance system with live face detection, person location tracking, gender demographics, Gemini Safety AI agent voice inquiry, and loitering anomaly alerts.">
+  
+  <!-- Modern HUD Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+  
+  <script>
+    // ── Runtime Config ────────────────────────────────────────────────────────
+    // In production (Firebase Hosting), BACKEND_URL is the Cloud Run service URL.
+    // WebSocket MUST connect directly to Cloud Run (Firebase Hosting doesn't proxy WS).
+    // REST API calls go through Firebase Hosting rewrite (/api/*) → Cloud Run.
+    window.BACKEND_URL = "%%BACKEND_URL%%"; // Replaced by deploy.ps1 at deploy time
+    window.DEFAULT_SAFETY_PROMPT = "Welcome. For safety purposes, please state your name and purpose of visit.";
+    window.HAS_GEMINI_KEY = false;
+    window.HAS_TWILIO_CONFIG = false;
+
+    // Fetch runtime config from backend on load
+    async function loadRuntimeConfig() {
+      try {
+        const res = await fetch("/api/config");
+        if (res.ok) {
+          const cfg = await res.json();
+          window.DEFAULT_SAFETY_PROMPT = cfg.default_safety_prompt || window.DEFAULT_SAFETY_PROMPT;
+          window.HAS_GEMINI_KEY = !!cfg.has_gemini_key;
+          window.HAS_TWILIO_CONFIG = !!cfg.has_twilio_config;
+          window.LOITERING_THRESHOLD = cfg.loitering_threshold_seconds || 15;
+          // Update loiter limit display
+          const loiterEl = document.getElementById("loiterLimitDisplay");
+          if (loiterEl) loiterEl.textContent = window.LOITERING_THRESHOLD + "s";
+        }
+      } catch (e) {
+        console.warn("[Config] Backend not reachable, using defaults.", e);
+      }
+    }
+    document.addEventListener("DOMContentLoaded", loadRuntimeConfig);
+  </script>
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Header & System Telemetry HUD -->
+    <header class="header-bar">
+      <div class="brand-section">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <circle cx="12" cy="11" r="3"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">
+            SMART CCTV
+            <span class="card-badge" style="font-size: 0.65rem;">AI v1.0</span>
+          </div>
+          <div class="brand-subtitle">Intelligent Surveillance &amp; Demographics Engine</div>
+        </div>
+      </div>
+
+      <div class="system-telemetry">
+        <div class="telemetry-chip">
+          <div id="systemStatusDot" class="status-dot active"></div>
+          <span id="systemStatusText">SYSTEM ACTIVE</span>
+        </div>
+        <div class="telemetry-chip">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span id="systemClock">00:00:00 UTC</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="muteAudioBtn" class="btn btn-ghost" title="Toggle Siren &amp; Alert Audio">
+          🔊 Audio Alarm ON
+        </button>
+        <button id="panicBtn" class="btn btn-danger" title="Trigger Emergency Panic Alarm">
+          🚨 PANIC OVERRIDE
+        </button>
+        <button id="settingsBtn" class="btn btn-ghost btn-icon-only" title="System Settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Emergency Loitering / Threat Alert Banner -->
+    <div id="alertBanner" class="alert-banner">
+      <div class="alert-content">
+        <div class="alert-icon">⚠️</div>
+        <div>
+          <div class="alert-title">SECURITY ANOMALY DETECTED</div>
+          <div id="alertBannerMsg" class="alert-subtitle">Loitering duration exceeded safety threshold.</div>
+        </div>
+      </div>
+      <button id="dismissAlertBtn" class="btn btn-ghost" style="color: #fff; border-color: rgba(255,255,255,0.4);">
+        DISMISS ALERT
+      </button>
+    </div>
+
+    <!-- Main Surveillance Grid -->
+    <main class="main-grid">
+
+      <!-- Left Column: Camera Feed & Demographics -->
+      <section class="card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            LIVE SURVEILLANCE FEED [CAM-01]
+          </h2>
+          <span class="card-badge">SECTOR: ENTRANCE A</span>
+        </div>
+
+        <!-- Video Viewport & Canvas HUD -->
+        <div class="camera-container">
+          <div class="hud-corner top-left"></div>
+          <div class="hud-corner top-right"></div>
+          <div class="hud-corner bottom-left"></div>
+          <div class="hud-corner bottom-right"></div>
+
+          <div class="hud-info-bar">
+            <div class="rec-indicator">
+              <div class="rec-dot"></div>
+              <span>REC LIVE</span>
+            </div>
+            <div>AI FACE TRACKING: ACTIVE</div>
+          </div>
+
+          <!-- Video Stream & HUD Canvas -->
+          <video id="cameraVideo" autoplay playsinline muted></video>
+          <canvas id="overlayCanvas"></canvas>
+        </div>
+
+        <!-- Camera Source Selector Bar -->
+        <div class="camera-controls-bar">
+          <select id="cameraSelect" class="camera-source-select">
+            <option value="">Detecting Camera Devices...</option>
+          </select>
+        </div>
+
+        <!-- Demographics & Telemetry HUD -->
+        <div class="demographics-hud">
+          <div class="metric-card">
+            <span class="metric-label">Total Occupants</span>
+            <span id="occupantsCount" class="metric-value cyan">0</span>
+            <span class="metric-unit">In Monitored Zone</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Male Count</span>
+            <span id="maleCount" class="metric-value emerald">0</span>
+            <span class="metric-unit">Active Faces</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Female Count</span>
+            <span id="femaleCount" class="metric-value amber">0</span>
+            <span class="metric-unit">Active Faces</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Avg Dwell Time</span>
+            <span class="metric-value crimson"><span id="avgDwellTime">0.0</span><span class="metric-unit" style="font-size: 1rem;">s</span></span>
+            <span class="metric-unit">Loiter Limit: <span id="loiterLimitDisplay">15s</span></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Interactive Safety AI Agent & Alert Feed -->
+      <section class="card" style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="card-header">
+          <h2 class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+            INTERACTIVE SAFETY AI SENTINEL
+          </h2>
+          <span class="card-badge" style="color: var(--emerald-accent); border-color: rgba(0,255,157,0.3);">GEMINI POWERED</span>
+        </div>
+
+        <div class="ai-agent-panel">
+          
+          <!-- AI Sentinel Avatar & Soundwave Visualizer -->
+          <div class="sentinel-avatar-wrap">
+            <div id="sentinelOrb" class="sentinel-orb">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+            </div>
+            <div class="sentinel-details">
+              <div class="sentinel-name">SMART CCTV AI SENTINEL</div>
+              <div id="sentinelStateText" class="sentinel-state">AI Sentinel Monitoring • Standby</div>
+              <div class="soundwave-bars">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dialogue Stream Feed -->
+          <div id="dialogueStream" class="dialogue-stream">
+            <div class="msg-bubble ai">
+              <div class="msg-header">
+                <span>SMART CCTV SENTINEL</span>
+                <span>SYSTEM READY</span>
+              </div>
+              <div class="msg-body">
+                Autonomous voice interrogation active. When a new face appears, safety inquiry will trigger automatically.
+              </div>
+            </div>
+          </div>
+
+          <!-- Inquiry Input Controls -->
+          <div class="inquiry-control-row">
+            <input type="text" id="inquiryTextInput" class="inquiry-input" placeholder="State purpose of visit (e.g. 'Delivery for Room 101')...">
+            <button id="micToggleBtn" class="btn voice-mic-btn btn-icon-only" title="Voice Input (Speech-to-Text)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+            </button>
+            <button id="sendInquiryBtn" class="btn btn-primary">
+              Verify
+            </button>
+          </div>
+
+          <!-- Live Threat & Alert Activity -->
+          <div>
+            <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px;">
+              RECENT SECURITY DISPATCHES &amp; ALERTS (<span id="alertsCount">0</span>)
+            </div>
+            <div id="alertsTimeline" class="alerts-timeline">
+              <div class="alert-entry">
+                <span class="alert-entry-time">INIT</span>
+                <span class="alert-entry-msg">Surveillance monitoring initialized on Sector A.</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Section: Visitor Intelligence & Audit Log -->
+    <section class="card">
+      <div class="card-header">
+        <h2 class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          VISITOR DEMOGRAPHIC LOG &amp; SNAPSHOT REGISTER
+        </h2>
+        <button id="exportCsvBtn" class="btn btn-primary" style="font-size: 0.8rem;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          DOWNLOAD CSV AUDIT LOG
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="visitor-table">
+          <thead>
+            <tr>
+              <th>Snapshot</th>
+              <th>Visitor ID / Name</th>
+              <th>Demographics</th>
+              <th>Person Location</th>
+              <th>Dwell Time</th>
+              <th>Loiter Status</th>
+              <th>Stated Purpose</th>
+              <th>Threat Level</th>
+            </tr>
+          </thead>
+          <tbody id="visitorTableBody">
+            <tr>
+              <td colspan="8" style="text-align: center; color: var(--text-dim); padding: 24px;">
+                No visitor detections recorded in current session.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Settings & Configuration Modal -->
+  <div id="settingsModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="card-header" style="margin-bottom: 0;">
+        <h2 class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          SYSTEM CONFIGURATION
+        </h2>
+        <button id="closeSettingsBtn" class="btn btn-ghost btn-icon-only">✕</button>
+      </div>
+
+      <div class="form-group">
+        <label>Google Gemini API Key</label>
+        <input type="password" id="geminiKeyInput" class="form-control" placeholder="AIzaSy...">
+        <span style="font-size: 0.72rem; color: var(--text-dim);">Enables advanced LLM reasoner for visitor interrogation.</span>
+      </div>
+
+      <div class="form-group">
+        <label>Loitering Anomaly Threshold (Seconds)</label>
+        <input type="number" id="loiterThresholdInput" class="form-control" value="15" min="5" max="120">
+      </div>
+
+      <div class="form-group">
+        <label>Twilio Account SID</label>
+        <input type="text" id="twilioSidInput" class="form-control" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+      </div>
+
+      <div class="form-group">
+        <label>Twilio Auth Token</label>
+        <input type="password" id="twilioTokenInput" class="form-control" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+      </div>
+
+      <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+          <label>Twilio From Number</label>
+          <input type="text" id="twilioFromInput" class="form-control" placeholder="+1234567890">
+        </div>
+        <div>
+          <label>Alert Recipient (To Phone)</label>
+          <input type="text" id="twilioToInput" class="form-control" placeholder="+1987654321">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="saveSettingsBtn" class="btn btn-primary">SAVE CONFIGURATION</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/static/js/audio_alarm.js"></script>
+  <script src="/static/js/voice_agent.js"></script>
+  <script src="/static/js/camera.js"></script>
+  <script src="/static/js/app.js"></script>
+
+</body>
+</html>

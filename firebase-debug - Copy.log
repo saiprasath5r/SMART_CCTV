@@ -1,0 +1,70 @@
+[debug] [2026-08-19T17:57:28.381Z] ----------------------------------------------------------------------
+[debug] [2026-08-19T17:57:28.385Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\saipr\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js projects:create smart-cctv-ai --display-name SMART CCTV AI
+[debug] [2026-08-19T17:57:28.386Z] CLI Version:   15.27.0
+[debug] [2026-08-19T17:57:28.386Z] Platform:      win32
+[debug] [2026-08-19T17:57:28.386Z] Node Version:  v24.19.0
+[debug] [2026-08-19T17:57:28.386Z] Detected Agent: antigravity
+[debug] [2026-08-19T17:57:28.386Z] Time:          Wed Aug 19 2026 23:27:28 GMT+0530 (India Standard Time)
+[debug] [2026-08-19T17:57:28.386Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-08-19T17:57:28.573Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-08-19T17:57:28.573Z] > authorizing via signed-in user (saiprasath5608@gmail.com)
+[debug] [2026-08-19T17:57:28.589Z] Checked if tokens are valid: true, expires at: 1787165811904
+[debug] [2026-08-19T17:57:28.589Z] Checked if tokens are valid: true, expires at: 1787165811904
+[debug] [2026-08-19T17:57:28.590Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects [none]
+[debug] [2026-08-19T17:57:28.590Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"projectId":"smart-cctv-ai","name":"SMART CCTV AI"}
+[debug] [2026-08-19T17:57:30.526Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects 200
+[debug] [2026-08-19T17:57:30.526Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"name":"operations/create_project.global.4751061926129845970"}
+[debug] [2026-08-19T17:57:30.527Z] Checked if tokens are valid: true, expires at: 1787165811904
+[debug] [2026-08-19T17:57:30.527Z] Checked if tokens are valid: true, expires at: 1787165811904
+[debug] [2026-08-19T17:57:30.527Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/operations/create_project.global.4751061926129845970 [none]
+[debug] [2026-08-19T17:57:32.141Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/operations/create_project.global.4751061926129845970 200
+[debug] [2026-08-19T17:57:32.142Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/operations/create_project.global.4751061926129845970 {"name":"operations/create_project.global.4751061926129845970","metadata":{"@type":"type.googleapis.com/google.cloudresourcemanager.v1.ProjectCreationStatus","ready":true},"done":true,"error":{"code":9,"message":"Callers must accept Terms of Service","details":[{"@type":"type.googleapis.com/google.rpc.PreconditionFailure","violations":[{"type":"TOS","subject":"cloud","description":"Callers must accept Terms of Service"}]}]}}
+[debug] [2026-08-19T17:57:32.147Z] FirebaseError: Callers must accept Terms of Service
+    at OperationPoller.poll (C:\Users\saipr\AppData\Roaming\npm\node_modules\firebase-tools\lib\operation-poller.js:25:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async createCloudProject (C:\Users\saipr\AppData\Roaming\npm\node_modules\firebase-tools\lib\management\projects.js:237:29)
+    at async createFirebaseProjectAndLog (C:\Users\saipr\AppData\Roaming\npm\node_modules\firebase-tools\lib\management\projects.js:102:9)
+    at async C:\Users\saipr\AppData\Roaming\npm\node_modules\firebase-tools\lib\command.js:280:28
+[error] 
+[error] Error: Failed to create project. See firebase-debug.log for more info.
+[debug] [2026-08-19T18:00:41.041Z] ----------------------------------------------------------------------
+[debug] [2026-08-19T18:00:41.045Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\saipr\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js projects:create smart-cctv-ai --display-name SMART CCTV AI
+[debug] [2026-08-19T18:00:41.045Z] CLI Version:   15.27.0
+[debug] [2026-08-19T18:00:41.046Z] Platform:      win32
+[debug] [2026-08-19T18:00:41.046Z] Node Version:  v24.19.0
+[debug] [2026-08-19T18:00:41.046Z] Detected Agent: antigravity
+[debug] [2026-08-19T18:00:41.046Z] Time:          Wed Aug 19 2026 23:30:41 GMT+0530 (India Standard Time)
+[debug] [2026-08-19T18:00:41.046Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-08-19T18:00:41.229Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-08-19T18:00:41.230Z] > authorizing via signed-in user (saiprasath5608@gmail.com)
+[debug] [2026-08-19T18:00:41.245Z] Checked if tokens are valid: true, expires at: 1787165811904
+[debug] [2026-08-19T18:00:41.246Z] Checked if tokens are valid: true, expires at: 1787165811904
+[debug] [2026-08-19T18:00:41.247Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects [none]
+[debug] [2026-08-19T18:00:41.247Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"projectId":"smart-cctv-ai","name":"SMART CCTV AI"}
+[debug] [2026-08-19T18:00:43.447Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects 200
+[debug] [2026-08-19T18:00:43.448Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"name":"operations/create_project.global.5772312545777778157"}
+[debug] [2026-08-19T18:00:43.451Z] Checked if tokens are valid: true, expires at: 1787165811904
+[debug] [2026-08-19T18:00:43.451Z] Checked if tokens are valid: true, expires at: 1787165811904
+[debug] [2026-08-19T18:00:43.452Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/operations/create_project.global.5772312545777778157 [none]
+[debug] [2026-08-19T18:00:45.164Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/operations/create_project.global.5772312545777778157 200
+[debug] [2026-08-19T18:00:45.165Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/operations/create_project.global.5772312545777778157 {"name":"operations/create_project.global.5772312545777778157"}
+[debug] [2026-08-19T18:00:45.678Z] [Project Creation Poller] Retrying task index 0
+[debug] [2026-08-19T18:00:45.680Z] Checked if tokens are valid: true, expires at: 1787165811904
+[debug] [2026-08-19T18:00:45.681Z] Checked if tokens are valid: true, expires at: 1787165811904
+[debug] [2026-08-19T18:00:45.682Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/operations/create_project.global.5772312545777778157 [none]
+[debug] [2026-08-19T18:00:46.391Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/operations/create_project.global.5772312545777778157 200
+[debug] [2026-08-19T18:00:46.391Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/operations/create_project.global.5772312545777778157 {"name":"operations/create_project.global.5772312545777778157","metadata":{"@type":"type.googleapis.com/google.cloudresourcemanager.v1.ProjectCreationStatus","gettable":true,"ready":true},"done":true,"response":{"@type":"type.googleapis.com/google.cloudresourcemanager.v1.Project","projectNumber":"484127141779","projectId":"smart-cctv-ai","lifecycleState":"ACTIVE","name":"SMART CCTV AI","createTime":"2026-08-19T18:00:43.524Z"}}
+[debug] [2026-08-19T18:00:46.395Z] Checked if tokens are valid: true, expires at: 1787165811904
+[debug] [2026-08-19T18:00:46.396Z] Checked if tokens are valid: true, expires at: 1787165811904
+[debug] [2026-08-19T18:00:46.397Z] >>> [apiv2][query] POST https://firebase.googleapis.com/v1beta1/projects/smart-cctv-ai:addFirebase [none]
+[debug] [2026-08-19T18:00:48.030Z] <<< [apiv2][status] POST https://firebase.googleapis.com/v1beta1/projects/smart-cctv-ai:addFirebase 403
+[debug] [2026-08-19T18:00:48.031Z] <<< [apiv2][body] POST https://firebase.googleapis.com/v1beta1/projects/smart-cctv-ai:addFirebase {"error":{"code":403,"message":"The caller does not have permission","status":"PERMISSION_DENIED"}}
+[debug] [2026-08-19T18:00:48.034Z] Request to https://firebase.googleapis.com/v1beta1/projects/smart-cctv-ai:addFirebase had HTTP Error: 403, The caller does not have permission
+[debug] [2026-08-19T18:00:48.037Z] FirebaseError: Request to https://firebase.googleapis.com/v1beta1/projects/smart-cctv-ai:addFirebase had HTTP Error: 403, The caller does not have permission
+    at responseToError (C:\Users\saipr\AppData\Roaming\npm\node_modules\firebase-tools\lib\responseToError.js:53:12)
+    at RetryOperation._fn (C:\Users\saipr\AppData\Roaming\npm\node_modules\firebase-tools\lib\apiv2.js:415:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+[error] 
+[error] Error: Failed to add Firebase to Google Cloud Platform project. See firebase-debug.log for more info.

@@ -1,0 +1,35 @@
+# Version Control
+.git
+.gitignore
+
+# Environment files (secrets injected via Cloud Run env vars)
+.env
+.env.*
+!.env.example
+
+# Python cache
+__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Persistent data (ephemeral in Cloud Run)
+data/
+data/snapshots/
+
+# Firebase / deployment files
+firebase.json
+.firebaserc
+public/
+
+# Dev tools
+*.log
+.DS_Store
+Thumbs.db
+
+# Docker itself
+Dockerfile
+.dockerignore
+deploy.ps1
